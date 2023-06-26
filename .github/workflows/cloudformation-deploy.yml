@@ -50,7 +50,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Deploy cloudformation template
       run: |
         aws cloudformation deploy --stack-name test-dep --template-file main.yaml --disable-rollback --parameter-overrides  LatestAmiId=ami-053b0d53c279acc90 --region us-east-1 Subnets="subnet-0b1a15825ca4af33b" --capabilities CAPABILITY_NAMED_IAM 
 
