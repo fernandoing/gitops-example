@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Validate
     runs-on: ubuntu-latest
     environment: production
 
