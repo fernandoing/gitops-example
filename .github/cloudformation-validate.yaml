@@ -26,10 +26,11 @@
 
 name: Deploy to cloudformation
 
-push:
-  branches:
-    - 'main'
-    - 'feat/**'
+on:
+  push:
+    branches:
+      - 'main'
+      - 'feat/**'
 
 permissions:
   contents: read
