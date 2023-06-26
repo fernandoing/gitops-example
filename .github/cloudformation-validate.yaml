@@ -27,14 +27,10 @@
 name: Deploy to cloudformation
 
 on:
-  pull_request:
-    # Sequence of patterns matched against refs/heads
-    branches:
-      - 'main'
-
-
-permissions:
-  contents: read
+  push:
+    branches:    
+      - main
+      - 'feat/**'
 
 jobs:
   deploy:
