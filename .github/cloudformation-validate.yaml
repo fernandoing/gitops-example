@@ -26,9 +26,7 @@
 
 name: Deploy to cloudformation
 
-on:
-  push:
-    pull_request: [ "main" ]
+on: [push]
 
 permissions:
   contents: read
