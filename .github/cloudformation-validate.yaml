@@ -26,14 +26,15 @@
 
 name: Deploy to cloudformation
 
-on: [push]
-
-permissions:
-  contents: read
+on:
+  push:
+    branches:    
+      - main
+      - 'feat/**'
 
 jobs:
   deploy:
-    name: Deploy
+    name: Validate
     runs-on: ubuntu-latest
     environment: production
 
