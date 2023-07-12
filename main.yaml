@@ -53,6 +53,15 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
   IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -98,3 +107,20 @@ Resources:
             Resource: "*"
       Roles: 
         - Ref: "RootRole"
+  Ec2LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      IpAddressType: ipv4
+      LoadBalancerAttributes: 
+        - LoadBalancerAttribute
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref LoadBalancerSecurityGroup
+      SubnetMappings: 
+        - SubnetMapping
+      Subnets: 
+        - subnet-0e52626592939d1f5
+        - subnet-0a32ac6d084b1584e
+        - subnet-07dc701e316ab9d75
+      Type: application
+
