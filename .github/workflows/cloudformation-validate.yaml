@@ -29,7 +29,6 @@ name: Validate cloudformation template
 on:
   push:
     branches:    
-      - main
       - 'feature**'
 
 jobs:

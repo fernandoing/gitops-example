@@ -111,8 +111,6 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
       IpAddressType: ipv4
-      LoadBalancerAttributes: 
-        - LoadBalancerAttribute
       Scheme: internet-facing
       SecurityGroups: 
         - !Ref LoadBalancerSecurityGroup
@@ -123,4 +121,12 @@ Resources:
         - subnet-0a32ac6d084b1584e
         - subnet-07dc701e316ab9d75
       Type: application
-
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: false
+      IpAddressType: ipv4
+      Name: MyTargets
+      TargetType: lambda
+      Targets:
+      - Id: !GetAtt [ MyLambdaFunction, Arn ]
