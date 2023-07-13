@@ -82,6 +82,9 @@ Resources:
       MaxSize: '1'
       MinSize: '0'
       DesiredCapacity: '1'
+      TargetGroupARNs:
+        - !Ref MyTargetGroup
+  
   RootRole: 
     Type: "AWS::IAM::Role"
     Properties: 
@@ -110,23 +113,37 @@ Resources:
   Ec2LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
+      Type: application
       IpAddressType: ipv4
       Scheme: internet-facing
       SecurityGroups: 
         - !Ref LoadBalancerSecurityGroup
-      SubnetMappings: 
-        - SubnetMapping
       Subnets: 
-        - subnet-0e52626592939d1f5
-        - subnet-0a32ac6d084b1584e
-        - subnet-07dc701e316ab9d75
-      Type: application
+        - subnet-002cddcf93df96ad5
+        - subnet-053a9d7e1a79917e5
+        - subnet-0cb06205677416c25
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+
   MyTargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
-      HealthCheckEnabled: false
+      Name: Ec2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
       IpAddressType: ipv4
-      Name: MyTargets
-      TargetType: lambda
-      Targets:
-      - Id: !GetAtt [ MyLambdaFunction, Arn ]
+      VpcId: vpc-010d73da829d30c24
+
+  MyListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn:
+        Ref: Ec2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: MyTargetGroup
