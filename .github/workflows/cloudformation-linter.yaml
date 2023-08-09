@@ -18,7 +18,6 @@ jobs:
 
       - name: Setup Cloud Formation Linter with Latest Version
         run: |
-          cd cfn-lint
           python setup.py clean --all
           python setup.py install
           pip install cfn-lint
