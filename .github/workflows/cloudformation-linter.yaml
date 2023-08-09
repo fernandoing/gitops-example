@@ -9,13 +9,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Clone GuillaumeFalourd/poc-github-actions PUBLIC repository
-        uses: GuillaumeFalourd/clone-github-repo-action@v2.1
+    
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          depth: 1
-          owner: 'aws-cloudformation'
-          repository: 'cfn-lint'
+            repository: aws-cloudformation/cfn-lint  # Public repository URL
+            ref: main  # Branch or tag you want to clone
 
       - name: Setup Cloud Formation Linter with Latest Version
         run: |
