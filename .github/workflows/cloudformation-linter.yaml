@@ -10,9 +10,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Clone GuillaumeFalourd/poc-github-actions PUBLIC repository
+        uses: GuillaumeFalourd/clone-github-repo-action@v2.1
+        with:
+          depth: 1
+          owner: 'aws-cloudformation'
+          repository: 'cfn-lint'
+
       - name: Setup Cloud Formation Linter with Latest Version
         run: |
-          curl -o setup.py https://raw.githubusercontent.com/aws-cloudformation/cfn-lint/main/setup.py
+          cd cfn-lint
           python setup.py clean --all
           python setup.py install
           pip install cfn-lint
