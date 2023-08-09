@@ -12,7 +12,7 @@ jobs:
 
       - name: Setup Cloud Formation Linter with Latest Version
         run: |
-          git clone git@github.com:aws-cloudformation/cfn-lint.git
+          gh repo clone aws-cloudformation/cfn-lint
           cd cfn-lint
           python setup.py clean --all
           python setup.py install
