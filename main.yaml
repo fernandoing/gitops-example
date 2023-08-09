@@ -47,16 +47,16 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http to client host
+      GroupDescription: Allow http to host from load balancer
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupName: !Ref LoadBalancerSecurityGroup
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http to client host
+      GroupDescription: Allow http to load balancer
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -117,7 +117,7 @@ Resources:
       IpAddressType: ipv4
       Scheme: internet-facing
       SecurityGroups: 
-        - !Ref LoadBalancerSecurityGroup
+        - !GetAtt LoadBalancerSecurityGroup.GroupId
       Subnets: 
         - subnet-002cddcf93df96ad5
         - subnet-053a9d7e1a79917e5
