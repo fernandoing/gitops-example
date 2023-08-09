@@ -9,17 +9,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-    
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-            repository: aws-cloudformation/cfn-lint  # Public repository URL
-            ref: main  # Branch or tag you want to clone
 
       - name: Setup Cloud Formation Linter with Latest Version
         run: |
-          python setup.py clean --all
-          python setup.py install
           pip install cfn-lint
 
       - name: Print the Cloud Formation Linter Version & run Linter.
