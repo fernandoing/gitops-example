@@ -21,6 +21,8 @@ jobs:
           brew gem install cfn-nag
 
       - name: Check for vulnerabilities
-        run: cfn_nag_scan --input-path main.yaml
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          cfn_nag_scan --input-path main.yaml
 
 
