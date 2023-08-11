@@ -1,0 +1,23 @@
+name: cloudformation nag (cfn-nag)
+
+on: [pull_request, push]
+
+#or
+# on:
+#   pull_request_target:
+#     branches:
+#       - main
+
+jobs:
+  validar_cfn_nag:
+    name: Validate cfn_nag (vulnerabilities)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install cfn_nag via gem
+        run: gem install cfn-nag
+      
+      - name: Check for vulnerabilities
+        run: cfn_nag_scan --input-path main.yaml
+
+
