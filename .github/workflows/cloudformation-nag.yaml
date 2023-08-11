@@ -23,6 +23,6 @@ jobs:
       - name: Check for vulnerabilities
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cfn_nag_scan --input-path $GITHUB_WORKSPACE/
+          cfn_nag_scan --input-path $GITHUB_WORKSPACE
 
 
