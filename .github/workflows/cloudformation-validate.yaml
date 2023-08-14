@@ -32,7 +32,7 @@ on:
       - 'feature**'
 
 jobs:
-  deploy:
+  Validate:
     name: Validate
     runs-on: ubuntu-latest
     environment: production
