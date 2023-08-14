@@ -22,6 +22,8 @@ jobs:
 
       - name: Check for vulnerabilities
         run: |
+          pwd
+          ls -lsa
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           cfn_nag_scan --input-path "${GITHUB_WORKSPACE}/main.yaml" 
 
