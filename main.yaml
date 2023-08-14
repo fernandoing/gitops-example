@@ -47,7 +47,16 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http to client host
+      GroupDescription: Allow http to host from load balancer
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupName: !Ref LoadBalancerSecurityGroup
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to load balancer
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -73,6 +82,9 @@ Resources:
       MaxSize: '1'
       MinSize: '0'
       DesiredCapacity: '1'
+      TargetGroupARNs:
+        - !Ref MyTargetGroup
+  
   RootRole: 
     Type: "AWS::IAM::Role"
     Properties: 
@@ -98,3 +110,40 @@ Resources:
             Resource: "*"
       Roles: 
         - Ref: "RootRole"
+  Ec2LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Type: application
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !GetAtt LoadBalancerSecurityGroup.GroupId
+      Subnets: 
+        - subnet-002cddcf93df96ad5
+        - subnet-053a9d7e1a79917e5
+        - subnet-0cb06205677416c25
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+
+  MyTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: Ec2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      IpAddressType: ipv4
+      VpcId: vpc-010d73da829d30c24
+
+  MyListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn:
+        Ref: Ec2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: MyTargetGroup

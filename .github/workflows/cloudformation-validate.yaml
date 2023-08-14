@@ -24,16 +24,15 @@
 #    See the documentation for each action used below for the recommended IAM policies for this IAM user,
 #    and best practices on handling the access key credentials.
 
-name: Deploy to cloudformation
+name: Validate cloudformation template
 
 on:
   push:
     branches:    
-      - main
       - 'feature**'
 
 jobs:
-  deploy:
+  Validate:
     name: Validate
     runs-on: ubuntu-latest
     environment: production
