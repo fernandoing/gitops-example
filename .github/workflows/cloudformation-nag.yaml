@@ -17,17 +17,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install cfn_nag via gem
-        run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install ruby brew-gem
-          brew gem install cfn-nag
+      # - name: Install cfn_nag via gem
+      #   run: |
+      #     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+      #     brew install ruby brew-gem
+      #     brew gem install cfn-nag
 
-      - name: Check for vulnerabilities
-        run: |
-          pwd
-          ls -lsa
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cfn_nag_scan --input-path "${GITHUB_WORKSPACE}/main.yaml" 
+      # - name: Check for vulnerabilities
+      #   run: |
+      #     pwd
+      #     ls -lsa
+      #     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+      #     cfn_nag_scan --input-path "${GITHUB_WORKSPACE}/main.yaml" 
 
-
+      - name: Simple test
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: main.yaml
