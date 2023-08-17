@@ -10,4 +10,6 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
-            - run: echo "hola crayola"
+            - run: eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+            - run: brew install ruby brew-gem
+            - run: brew gem install cfn-nag 
