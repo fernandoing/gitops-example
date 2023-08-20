@@ -1,9 +1,8 @@
 Parameters:
-  LatestAmiId:
-    Description: Region specific image from the Parameter Store
-    Type: String
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
   InstanceType:
-    Description: Amazon EC2 instance type for the instances
+    Description: Instance to deploy into ASG
     Type: String
     AllowedValues:
       - t2.micro
@@ -11,32 +10,64 @@ Parameters:
       - t3.small
       - t3.medium
     Default: t2.micro
+  ToPort:
+    Description: LB SG FROM port to open
+    Type: Number
+  FromPort:
+    Description: LB SG TO port to open
+    Type: Number
+  LBSecurityGroupIngressIp:
+    Description: Ingress rule for load balancer.
+    Type: String
+    Default: 0.0.0.0/0
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: AWS VPC to deploy ASG into
+  AvailZones:
+    Description: Availability zones for ASG and LB
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+  VPCSubnets:
+    Type: AWS::EC2::Subnet::Id
+    Description: VPC subnets to deploy LB into (must match AvailZones)
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      Ub22Ami: "ami-053b0d53c279acc90"
+    us-west-1:
+      Ub22Ami: "ami-0f8e81a3da6e2510a"
+    us-east-2:
+      Ub22Ami: "ami-024e6efaf93d85776"
+    us-west-2:
+      Ub22Ami: "ami-03f65b8614a860c29"
+    ap-southeast-1:
+      Ub22Ami: "ami-0df7a207adb9748c7"
+    ap-northeast-1:
+      Ub22Ami: "ami-0d52744d6551d851e"
+
 Resources:
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
-    Properties: 
+    Properties:
       LaunchTemplateName: !Sub "${AWS::StackName}-launch-template"
       LaunchTemplateData:
-        #https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html#cfn-ec2-launchtemplate-launchtemplatedata-blockdevicemappings 
         BlockDeviceMappings:
-          #https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping.html
         - DeviceName: /dev/sdh
           Ebs:
-            #https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
             DeleteOnTermination: True
             Encrypted: False
             VolumeSize: 10
             VolumeType: gp3
-        IamInstanceProfile: 
+        IamInstanceProfile:
           Arn: !GetAtt
             - IamInstanceProfile
             - Arn
-        ImageId: ami-053b0d53c279acc90
+        ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", Ub22Ami]
         InstanceType: t2.micro
-        SecurityGroups: 
+        SecurityGroups:
         - !Ref InstanceSecurityGroup
-        UserData: 
-          Fn::Base64: 
+        UserData:
+          Fn::Base64:
             !Sub |
               #!/bin/bash
 
@@ -59,23 +90,20 @@ Resources:
       GroupDescription: Allow http to load balancer
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
+          FromPort: !Ref FromPort
+          ToPort: !Ref ToPort
+          CidrIp: !Ref LBSecurityGroupIngressIp
   IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       InstanceProfileName: !Join [ -, [ !Sub "${AWS::StackName}", instance, profile ] ]
       Path: "/"
       Roles:
-      - !Ref RootRole
+      - !Ref SSMRole
   AutoscalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AvailabilityZones: 
-        - us-east-1a
-        - us-east-1b
-        - us-east-1c
+      AvailabilityZones: !Ref AvailZones
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
@@ -84,44 +112,43 @@ Resources:
       DesiredCapacity: '1'
       TargetGroupARNs:
         - !Ref MyTargetGroup
-  
-  RootRole: 
+  SSMRole:
     Type: "AWS::IAM::Role"
-    Properties: 
-      AssumeRolePolicyDocument: 
+    Properties:
+      AssumeRolePolicyDocument:
         Version: "2012-10-17"
-        Statement: 
+        Statement:
           - Effect: "Allow"
-            Principal: 
-              Service: 
+            Principal:
+              Service:
                 - "ec2.amazonaws.com"
-            Action: 
+            Action:
               - "sts:AssumeRole"
       Path: "/"
-  RolePolicies: 
-    Type: "AWS::IAM::Policy"
-    Properties: 
-      PolicyName: "root"
-      PolicyDocument: 
-        Version: "2012-10-17"
-        Statement: 
-          - Effect: "Allow"
-            Action: "*"
-            Resource: "*"
-      Roles: 
-        - Ref: "RootRole"
+      Policies:
+        - "AmazonSSMManagedInstanceCore"
+  # Podemos crear una poliza custom si tenemos la necesidad.
+  # RolePolicies:
+  #   Type: "AWS::IAM::Policy"
+  #   Properties:
+  #     PolicyName: "root"
+  #     PolicyDocument:
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Effect: "Allow"
+  #           Action: "*"
+  #           Resource: "*"
+  #     Roles:
+  #       - Ref: "SSMRole"
   Ec2LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties: 
+    Properties:
       Type: application
       IpAddressType: ipv4
       Scheme: internet-facing
-      SecurityGroups: 
+      SecurityGroups:
         - !GetAtt LoadBalancerSecurityGroup.GroupId
-      Subnets: 
-        - subnet-002cddcf93df96ad5
-        - subnet-053a9d7e1a79917e5
-        - subnet-0cb06205677416c25
+      Subnets: !Ref VPCSubnets
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
           Value: '60'
@@ -134,8 +161,7 @@ Resources:
       Protocol: HTTP
       TargetType: instance
       IpAddressType: ipv4
-      VpcId: vpc-010d73da829d30c24
-
+      VpcId: !Ref VpcId
   MyListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
