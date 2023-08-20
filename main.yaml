@@ -1,3 +1,10 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+      - E2503
 Parameters:
   InstanceType:
     Description: Instance to deploy into ASG
