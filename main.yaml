@@ -1,6 +1,8 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 Metadata:
+  # Ignorar errores de cfn-lint
+  # https://github.com/aws-cloudformation/cfn-lint/issues/113#issuecomment-420213889
   cfn-lint:
     config:
       ignore_checks:
@@ -88,6 +90,11 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupName: !Ref LoadBalancerSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -97,6 +104,10 @@ Resources:
           FromPort: !Ref FromPort
           ToPort: !Ref ToPort
           CidrIp: !Ref LBSecurityGroupIngressIp
+        - IpProtocol: tcp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
   IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
