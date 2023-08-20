@@ -1,6 +1,4 @@
 Parameters:
-  KeyPair:
-    Type: AWS::EC2::KeyPair::KeyName
   InstanceType:
     Description: Instance to deploy into ASG
     Type: String
@@ -63,12 +61,11 @@ Resources:
             - IamInstanceProfile
             - Arn
         ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", Ub22Ami]
-        InstanceType: t2.micro
+        InstanceType: !Ref InstanceType
         SecurityGroups:
         - !Ref InstanceSecurityGroup
         UserData:
-          Fn::Base64:
-            !Sub |
+          Fn::Base64: |
               #!/bin/bash
 
               apt update
@@ -127,19 +124,6 @@ Resources:
       Path: "/"
       Policies:
         - "AmazonSSMManagedInstanceCore"
-  # Podemos crear una poliza custom si tenemos la necesidad.
-  # RolePolicies:
-  #   Type: "AWS::IAM::Policy"
-  #   Properties:
-  #     PolicyName: "root"
-  #     PolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: "Allow"
-  #           Action: "*"
-  #           Resource: "*"
-  #     Roles:
-  #       - Ref: "SSMRole"
   Ec2LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -148,7 +132,7 @@ Resources:
       Scheme: internet-facing
       SecurityGroups:
         - !GetAtt LoadBalancerSecurityGroup.GroupId
-      Subnets: !Ref VPCSubnets
+      Subnets: [!Ref VPCSubnets]
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
           Value: '60'
