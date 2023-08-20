@@ -1,8 +1,16 @@
 name: Validate templates
-on:
-  pull_request_target:
-    branches:
-      - main
+on: [push]
+
+# Github actions es gratis, entonces podemos aprovechar correr nuestras pruebas en cada
+# push a una rama nueva. Si necesitamos ahorrar en tiempo de ejecucion, podriamos solo
+# correr nuestros worlflows cuando craemos un pull request. Asi:
+# on:
+#   pull_request_target:
+#     branches:
+#       - main
+#   push:
+#     branches:
+#       - main
 
 jobs:
   cfn-nag:
