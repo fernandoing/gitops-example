@@ -6,7 +6,8 @@ Metadata:
   cfn-lint:
     config:
       ignore_checks:
-      - E2503
+      - E2503 # We are not using multiple subnets, as we pass thru args.
+      - E2521 # We are using the default VPC.
 Parameters:
   InstanceType:
     Description: Instance to deploy into ASG
@@ -104,6 +105,7 @@ Resources:
           FromPort: !Ref FromPort
           ToPort: !Ref ToPort
           CidrIp: !Ref LBSecurityGroupIngressIp
+      SecurityGroupEgress:
         - IpProtocol: tcp
           FromPort: -1
           ToPort: -1
