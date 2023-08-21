@@ -20,6 +20,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # - name: Simple test
+      #   uses: stelligent/cfn_nag@master
+      #   with:
+      #     input_path: ./main.yaml
+
       - name: Setup cfn-nag
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
@@ -29,7 +34,7 @@ jobs:
       - name: Execute cfn-nag
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cfn_nag_scan --input-path templates/*
+          cfn_nag_scan --input-path ./main.yaml
 
   cfn-lint:
     name: Perform linting (cfn-lint)
