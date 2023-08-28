@@ -63,4 +63,4 @@ jobs:
 
     - name: Validate cloudformation template
       run: |
-        aws cloudformation validate-template --template-body file://templates/main.yaml
+        aws cloudformation validate-template --template-body file://templates/fronend-app.yaml

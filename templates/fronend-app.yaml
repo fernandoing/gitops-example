@@ -7,6 +7,7 @@ Metadata:
     config:
       ignore_checks:
       - E2503 # We are not using multiple subnets, as we pass thru args.
+      - E2506 # Dislikes using SG ID as SG ingress rule
 Parameters:
   InstanceType:
     Description: Instance to deploy into ASG
