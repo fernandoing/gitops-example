@@ -49,7 +49,7 @@ jobs:
       - name: Print the Cloud Formation Linter Version & run Linter.
         run: |
           cfn-lint --version
-          cfn-lint -t ./templates
+          cfn-lint -t ./templates/*.yaml
 
   cnf-validate:
     name: Validate cfn template (aws-cli)

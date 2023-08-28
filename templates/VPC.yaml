@@ -202,6 +202,11 @@ Resources:
       GroupName: "no-ingress-sg"
       GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
 
 Outputs:
   VpcID:
