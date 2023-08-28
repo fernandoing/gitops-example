@@ -209,11 +209,11 @@ Resources:
           CidrIp: 0.0.0.0/0
 
 Outputs:
-  VpcID:
+  VpcId:
     Description: A reference to the created VPC
     Value: !Ref VPC
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", VpcID ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", VpcId ] ]
 
   PublicSubnets:
     Description: A list of the public subnets
