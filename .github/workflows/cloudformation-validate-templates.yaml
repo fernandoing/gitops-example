@@ -34,7 +34,7 @@ jobs:
       - name: Execute cfn-nag
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cfn_nag_scan --input-path ./main.yaml
+          cfn_nag_scan --input-path ./templates
 
   cfn-lint:
     name: Perform linting (cfn-lint)
@@ -49,7 +49,7 @@ jobs:
       - name: Print the Cloud Formation Linter Version & run Linter.
         run: |
           cfn-lint --version
-          cfn-lint -t ./main.yaml
+          cfn-lint -t ./templates
 
   cnf-validate:
     name: Validate cfn template (aws-cli)
@@ -69,4 +69,4 @@ jobs:
 
     - name: Validate cloudformation template
       run: |
-        aws cloudformation validate-template --template-body file://main.yaml
+        aws cloudformation validate-template --template-body file://templates/main.yaml
