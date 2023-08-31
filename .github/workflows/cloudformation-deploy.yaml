@@ -26,4 +26,4 @@ jobs:
 
     - name: Deploy cloudformation template
       run: |
-        aws cloudformation deploy --stack-name test-dep --template-file main.yaml --disable
+        aws cloudformation deploy --stack-name gitops-frontend-stack --template-file templates/fronend-app.yaml --disable-rollback  --parameter-overrides EnvironmentName=dev

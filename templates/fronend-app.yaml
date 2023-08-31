@@ -30,9 +30,6 @@ Parameters:
     Description: Ingress rule for load balancer.
     Type: String
     Default: 0.0.0.0/0
-  AvailZones:
-    Description: Availability zones for ASG and LB
-    Type: List<AWS::EC2::AvailabilityZone::Name>
   NetworkStack:
     Type: String
     Description: Name of the network stack previously deployed that has VPC info
@@ -71,7 +68,7 @@ Resources:
             - Arn
         ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", Ub22Ami]
         InstanceType: !Ref InstanceType
-        SecurityGroups:
+        SecurityGroupIds:
         - !Ref InstanceSecurityGroup
         UserData:
           Fn::Base64: |
@@ -83,20 +80,21 @@ Resources:
               systemctl enable apache2
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    DependsOn: LoadBalancerSecurityGroup
     Properties:
       GroupDescription: Allow http to host from load balancer
       VpcId:
         Fn::ImportValue:
-          !Sub "${NetworkStack}-VpcId"
+          !Sub "${NetworkStack}:VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupName: !Ref LoadBalancerSecurityGroup
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: tcp
-          FromPort: -1
-          ToPort: -1
+          FromPort: 80
+          ToPort: 443
           CidrIp: 0.0.0.0/0
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -104,7 +102,7 @@ Resources:
       GroupDescription: Allow http to load balancer
       VpcId:
         Fn::ImportValue:
-          !Sub "${NetworkStack}-VpcId"
+          !Sub "${NetworkStack}:VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: !Ref FromPort
@@ -112,8 +110,8 @@ Resources:
           CidrIp: !Ref LBSecurityGroupIngressIp
       SecurityGroupEgress:
         - IpProtocol: tcp
-          FromPort: -1
-          ToPort: -1
+          FromPort: 80
+          ToPort: 443
           CidrIp: 0.0.0.0/0
   IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -127,7 +125,7 @@ Resources:
     Properties:
       VPCZoneIdentifier:
         - Fn::ImportValue:
-            !Sub "${NetworkStack}-PublicSubnets"
+            !Sub "${NetworkStack}:PublicSubnets"
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
@@ -160,8 +158,10 @@ Resources:
       SecurityGroups:
         - !GetAtt LoadBalancerSecurityGroup.GroupId
       Subnets:
-        - Fn::ImportValue:
-            !Sub "${NetworkStack}-PublicSubnets"
+      - Fn::ImportValue:
+          !Sub "${NetworkStack}:PublicSubnet1"
+      - Fn::ImportValue:
+          !Sub "${NetworkStack}:PublicSubnet2"
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
           Value: '60'
@@ -176,7 +176,7 @@ Resources:
       IpAddressType: ipv4
       VpcId:
         Fn::ImportValue:
-          !Sub "${NetworkStack}-VpcId"
+          !Sub "${NetworkStack}:VpcId"
   MyListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
