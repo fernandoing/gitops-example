@@ -80,7 +80,6 @@ Resources:
               systemctl enable apache2
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DependsOn: LoadBalancerSecurityGroup
     Properties:
       GroupDescription: Allow http to host from load balancer
       VpcId:
