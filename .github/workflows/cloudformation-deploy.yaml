@@ -27,7 +27,8 @@ jobs:
 
     - name: Deploy cloudformation template
       run: |
-        aws cloudformation deploy --stack-name my-ec2 --template-file templates/ec2.yaml --disable-rollback  
+        aws cloudformation deploy --stack-name my-ec2 --template-file templates/ec2.yaml --disable-rollback
+        
   
 
 

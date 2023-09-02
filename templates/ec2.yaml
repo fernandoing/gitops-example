@@ -44,8 +44,3 @@ Resources:
           FromPort: 22
           ToPort: 80
           CidrIp: !Ref SecurityGroupIP
-      SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
