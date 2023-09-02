@@ -33,6 +33,11 @@ Resources:
             systemctl enable apache2
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F1000
+            reason: "Using Default VPC, so cant specify vpcid, can only specify egress in non default vpc"
     Properties:
       GroupDescription: Allow http to client host
       SecurityGroupIngress:
