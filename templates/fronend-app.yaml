@@ -7,7 +7,7 @@ Metadata:
     config:
       ignore_checks:
       - E2503 # We are not using multiple subnets, as we pass thru args.
-      - E2521 # We are using the default VPC.
+      - E2506 # Dislikes using SG ID as SG ingress rule
 Parameters:
   InstanceType:
     Description: Instance to deploy into ASG
@@ -21,22 +21,18 @@ Parameters:
   ToPort:
     Description: LB SG FROM port to open
     Type: Number
+    Default: 80
   FromPort:
     Description: LB SG TO port to open
     Type: Number
+    Default: 80
   LBSecurityGroupIngressIp:
     Description: Ingress rule for load balancer.
     Type: String
     Default: 0.0.0.0/0
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: AWS VPC to deploy ASG into
-  AvailZones:
-    Description: Availability zones for ASG and LB
-    Type: List<AWS::EC2::AvailabilityZone::Name>
-  VPCSubnets:
-    Type: AWS::EC2::Subnet::Id
-    Description: VPC subnets to deploy LB into (must match AvailZones)
+  NetworkStack:
+    Type: String
+    Description: Name of the network stack previously deployed that has VPC info
 
 Mappings:
   RegionMap:
@@ -72,7 +68,7 @@ Resources:
             - Arn
         ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", Ub22Ami]
         InstanceType: !Ref InstanceType
-        SecurityGroups:
+        SecurityGroupIds:
         - !Ref InstanceSecurityGroup
         UserData:
           Fn::Base64: |
@@ -86,20 +82,26 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to host from load balancer
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${NetworkStack}:VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupName: !Ref LoadBalancerSecurityGroup
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: tcp
-          FromPort: -1
-          ToPort: -1
+          FromPort: 80
+          ToPort: 443
           CidrIp: 0.0.0.0/0
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to load balancer
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${NetworkStack}:VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: !Ref FromPort
@@ -107,8 +109,8 @@ Resources:
           CidrIp: !Ref LBSecurityGroupIngressIp
       SecurityGroupEgress:
         - IpProtocol: tcp
-          FromPort: -1
-          ToPort: -1
+          FromPort: 80
+          ToPort: 443
           CidrIp: 0.0.0.0/0
   IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -120,15 +122,17 @@ Resources:
   AutoscalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AvailabilityZones: !Ref AvailZones
+      VPCZoneIdentifier:
+        - Fn::ImportValue:
+            !Sub "${NetworkStack}:PublicSubnets"
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
       MaxSize: '1'
       MinSize: '0'
       DesiredCapacity: '1'
-      TargetGroupARNs:
-        - !Ref MyTargetGroup
+      # TargetGroupARNs:
+      #   - !Ref MyTargetGroup
   SSMRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -144,36 +148,42 @@ Resources:
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  Ec2LoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Type: application
-      IpAddressType: ipv4
-      Scheme: internet-facing
-      SecurityGroups:
-        - !GetAtt LoadBalancerSecurityGroup.GroupId
-      Subnets: [!Ref VPCSubnets]
-      LoadBalancerAttributes:
-        - Key: idle_timeout.timeout_seconds
-          Value: '60'
+  # Ec2LoadBalancer:
+  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  #   Properties:
+  #     Type: application
+  #     IpAddressType: ipv4
+  #     Scheme: internet-facing
+  #     SecurityGroups:
+  #       - !GetAtt LoadBalancerSecurityGroup.GroupId
+  #     Subnets:
+  #     - Fn::ImportValue:
+  #         !Sub "${NetworkStack}:PublicSubnet1"
+  #     - Fn::ImportValue:
+  #         !Sub "${NetworkStack}:PublicSubnet2"
+  #     LoadBalancerAttributes:
+  #       - Key: idle_timeout.timeout_seconds
+  #         Value: '60'
 
-  MyTargetGroup:
-    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
-    Properties:
-      Name: Ec2LoadBalancer
-      Port: 80
-      Protocol: HTTP
-      TargetType: instance
-      IpAddressType: ipv4
-      VpcId: !Ref VpcId
-  MyListener:
-    Type: 'AWS::ElasticLoadBalancingV2::Listener'
-    Properties:
-      LoadBalancerArn:
-        Ref: Ec2LoadBalancer
-      Port: 80
-      Protocol: HTTP
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn:
-            Ref: MyTargetGroup
+  # MyTargetGroup:
+  #   Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+  #   Properties:
+  #     Name: Ec2LoadBalancer
+  #     Port: 80
+  #     Protocol: HTTP
+  #     TargetType: instance
+  #     IpAddressType: ipv4
+  #     VpcId:
+  #       Fn::ImportValue:
+  #         !Sub "${NetworkStack}:VpcId"
+  # MyListener:
+  #   Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  #   Properties:
+  #     LoadBalancerArn:
+  #       Ref: Ec2LoadBalancer
+  #     Port: 80
+  #     Protocol: HTTP
+  #     DefaultActions:
+  #       - Type: forward
+  #         TargetGroupArn:
+  #           Ref: MyTargetGroup
