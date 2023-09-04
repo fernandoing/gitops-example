@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - E2521 # No VpcId in SG. Just a demo.
+Parameters:
+  SecurityGroupIP:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: Introduce la IP para hacer whitelist en nuestro SG.
+Resources:
+  MiprimeraInstanciaEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-053b0d53c279acc90
+      InstanceType: t2.micro
+      BlockDeviceMappings:
+      - DeviceName: "/dev/sdm"
+        Ebs:
+          VolumeType: "gp3"
+          DeleteOnTermination: "true"
+          VolumeSize: "10"
+      SecurityGroups:
+      - !Ref InstanceSecurityGroup
+      UserData:
+        Fn::Base64: |
+            #!/bin/bash
+
+            apt update
+            apt install apache2 -y
+            systemctl start apache2
+            systemctl enable apache2
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F1000
+            reason: "Using Default VPC, so cant specify vpcid, can only specify egress in non default vpc"
+    Properties:
+      GroupDescription: Allow http to client host
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref SecurityGroupIP
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 80
+          CidrIp: !Ref SecurityGroupIP

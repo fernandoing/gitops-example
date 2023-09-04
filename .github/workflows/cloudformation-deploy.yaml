@@ -2,13 +2,13 @@ name: Deploy to cloudformation
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
+  deploy_vpc:
     name: Deploy
     runs-on: ubuntu-latest
     environment: production
@@ -26,4 +26,7 @@ jobs:
 
     - name: Deploy cloudformation template
       run: |
-        aws cloudformation deploy --stack-name test-dep --template-file main.yaml --disable
+        echo "Creating/updating vpc-stack"
+        aws cloudformation deploy --stack-name gitops-vpc-stack --template-file templates/network.yaml --disable-rollback  --parameter-overrides EnvironmentName=dev
+        echo "Creating/updating frontend-stack"
+        aws cloudformation deploy --stack-name gitops-frontend-stack --template-file templates/fronend-app.yaml --disable-rollback --parameter-overrides NetworkStack=gitops-vpc-stack --capabilities CAPABILITY_NAMED_IAM
