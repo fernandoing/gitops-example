@@ -131,8 +131,8 @@ Resources:
       MaxSize: '1'
       MinSize: '0'
       DesiredCapacity: '1'
-      # TargetGroupARNs:
-      #   - !Ref MyTargetGroup
+      TargetGroupARNs:
+        - !Ref MyTargetGroup
   SSMRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -148,42 +148,42 @@ Resources:
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  # Ec2LoadBalancer:
-  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-  #   Properties:
-  #     Type: application
-  #     IpAddressType: ipv4
-  #     Scheme: internet-facing
-  #     SecurityGroups:
-  #       - !GetAtt LoadBalancerSecurityGroup.GroupId
-  #     Subnets:
-  #     - Fn::ImportValue:
-  #         !Sub "${NetworkStack}:PublicSubnet1"
-  #     - Fn::ImportValue:
-  #         !Sub "${NetworkStack}:PublicSubnet2"
-  #     LoadBalancerAttributes:
-  #       - Key: idle_timeout.timeout_seconds
-  #         Value: '60'
+  Ec2LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups:
+        - !GetAtt LoadBalancerSecurityGroup.GroupId
+      Subnets:
+      - Fn::ImportValue:
+          !Sub "${NetworkStack}:PublicSubnet1"
+      - Fn::ImportValue:
+          !Sub "${NetworkStack}:PublicSubnet2"
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
 
-  # MyTargetGroup:
-  #   Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
-  #   Properties:
-  #     Name: Ec2LoadBalancer
-  #     Port: 80
-  #     Protocol: HTTP
-  #     TargetType: instance
-  #     IpAddressType: ipv4
-  #     VpcId:
-  #       Fn::ImportValue:
-  #         !Sub "${NetworkStack}:VpcId"
-  # MyListener:
-  #   Type: 'AWS::ElasticLoadBalancingV2::Listener'
-  #   Properties:
-  #     LoadBalancerArn:
-  #       Ref: Ec2LoadBalancer
-  #     Port: 80
-  #     Protocol: HTTP
-  #     DefaultActions:
-  #       - Type: forward
-  #         TargetGroupArn:
-  #           Ref: MyTargetGroup
+  MyTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: Ec2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      IpAddressType: ipv4
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${NetworkStack}:VpcId"
+  MyListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn:
+        Ref: Ec2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: MyTargetGroup
