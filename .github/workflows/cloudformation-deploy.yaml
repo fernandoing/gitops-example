@@ -2,14 +2,13 @@ name: Deploy to cloudformation
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 permissions:
   contents: read
 
 jobs:
-
-  deploy_ec2:
+  deploy_vpc:
     name: Deploy
     runs-on: ubuntu-latest
     environment: production
@@ -27,38 +26,7 @@ jobs:
 
     - name: Deploy cloudformation template
       run: |
-        aws cloudformation deploy --stack-name my-ec2 --template-file templates/ec2.yaml --disable-rollback
-        
-  
-
-
-
-
-
-
-
-
-
-
-  # deploy_vpc:
-  #   name: Deploy
-  #   runs-on: ubuntu-latest
-  #   environment: production
-
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v3
-
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: us-east-1
-
-  #   - name: Deploy cloudformation template
-  #     run: |
-  #       echo "Creating/updating vpc-stack"
-  #       aws cloudformation deploy --stack-name gitops-vpc-stack --template-file templates/network.yaml --disable-rollback  --parameter-overrides EnvironmentName=dev
-  #       echo "Creating/updating frontend-stack"
-  #       aws cloudformation deploy --stack-name gitops-frontend-stack --template-file templates/fronend-app.yaml --disable-rollback --parameter-overrides NetworkStack=gitops-vpc-stack --capabilities CAPABILITY_NAMED_IAM
+        echo "Creating/updating vpc-stack"
+        aws cloudformation deploy --stack-name gitops-vpc-stack --template-file templates/network.yaml --disable-rollback  --parameter-overrides EnvironmentName=dev
+        echo "Creating/updating frontend-stack"
+        aws cloudformation deploy --stack-name gitops-frontend-stack --template-file templates/fronend-app.yaml --disable-rollback --parameter-overrides NetworkStack=gitops-vpc-stack --capabilities CAPABILITY_NAMED_IAM
