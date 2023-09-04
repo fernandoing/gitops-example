@@ -2,7 +2,7 @@ name: Deploy to cloudformation
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "main" ]
 
 permissions:
   contents: read
