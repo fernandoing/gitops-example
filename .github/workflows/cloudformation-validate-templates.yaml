@@ -20,11 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - name: Simple test
-      #   uses: stelligent/cfn_nag@master
-      #   with:
-      #     input_path: ./main.yaml
-
       - name: Setup cfn-nag
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
@@ -34,7 +29,7 @@ jobs:
       - name: Execute cfn-nag
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cfn_nag_scan --input-path ./main.yaml
+          cfn_nag_scan --input-path ./templates
 
   cfn-lint:
     name: Perform linting (cfn-lint)
@@ -49,12 +44,11 @@ jobs:
       - name: Print the Cloud Formation Linter Version & run Linter.
         run: |
           cfn-lint --version
-          cfn-lint -t ./main.yaml
+          cfn-lint -t ./templates/*.yaml
 
   cnf-validate:
     name: Validate cfn template (aws-cli)
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
     - name: Checkout
@@ -69,4 +63,4 @@ jobs:
 
     - name: Validate cloudformation template
       run: |
-        aws cloudformation validate-template --template-body file://main.yaml
+        aws cloudformation validate-template --template-body file://templates/fronend-app.yaml
